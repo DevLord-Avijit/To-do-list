@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Google OAuth -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+        }
+
+        .signup-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px 40px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 1.2em;
+            color: #ddd;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background: #333;
+            color: #fff;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            background: #2575fc;
+            box-shadow: 0 0 10px rgba(37, 117, 252, 0.5);
+        }
+
+        button {
+            padding: 12px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            background-color: #2575fc;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #6a11cb;
+            transform: scale(1.05);
+        }
+
+        .google-btn {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .login-link {
+            margin-top: 15px;
+        }
+
+        .login-link a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #2575fc;
+        }
+
+        /* Message box for errors/success */
+        .message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .message.error {
+            background-color: #ff4d4d;
+            color: white;
+        }
+
+        .message.success {
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="signup-container">
+        <h1>Signup</h1>
+
+        <!-- Error message handling -->
+        <div id="message-box" class="message" style="display: none;"></div>
+
+        <form method="POST" action="/signup">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="Enter your email">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required placeholder="Choose a username">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+            <button type="submit">Signup</button>
+        </form>
+
+        <p style="margin: 15px 0;">OR</p>
+
+        <!-- Google Sign-Up Button -->
+        <div class="google-btn">
+            <div id="g_id_onload"
+                data-client_id="21748678795-l1d91f48a851gvd8r7j1tvird9joo3jv.apps.googleusercontent.com"
+                data-context="signup"
+                data-callback="handleGoogleSignup"
+                data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+        </div>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="/login">Login here</a></p>
+        </div>
+    </div>
+
+    <script>
+        function handleGoogleSignup(response) {
+            const credential = response.credential;
+            if (!credential) {
+                showMessage("Google signup failed. Please try again.", "error");
+                return;
+            }
+
+            // Send Google credential to backend
+            fetch('/google_signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: credential })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showMessage("Signup successful! Redirecting...", "success");
+                    setTimeout(() => {
+                        window.location.href = "/"; // Redirect to dashboard or home
+                    }, 1500);
+                } else {
+                    showMessage(data.message, "error");
+                }
+            })
+            .catch(error => {
+                console.error("Google Signup Error:", error);
+                showMessage("An error occurred during Google signup.", "error");
+            });
+        }
+
+        function showMessage(message, type) {
+            const messageBox = document.getElementById("message-box");
+            messageBox.innerText = message;
+            messageBox.className = `message ${type}`;
+            messageBox.style.display = "block";
+            setTimeout(() => { messageBox.style.display = "none"; }, 5000);
+        }
+    </script>
+</body>
+
+</html>

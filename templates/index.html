@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler</title>
+
+    <style>
+        * {
+            font-size: 1.05rem;
+        }
+
+        /* General Body Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1b1b2f, #162447, #1f4068, #1b1b2f);
+            color: #e4e4e4;
+            background-color: #1f4068;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1f4068;
+            padding: 10px 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar h1 {
+            color: #00d9ff;
+            font-size: 1.5em;
+            margin: 0;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: #e4e4e4;
+            margin: 0 10px;
+            font-weight: bold;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .navbar a:hover {
+            color: #00d9ff;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(30, 30, 47, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d9ff;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            /* Adjusts size based on screen width */
+            margin-bottom: 20px;
+            white-space: nowrap;
+            /* Prevents text from breaking into multiple lines */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90vw;
+            /* Ensures the text stays within the screen width */
+        }
+
+
+        /* Form Section */
+        .form-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .form-section label {
+            font-size: 1.3em;
+            flex: 1 1 100px;
+        }
+
+        .form-section input[type="date"],
+        .form-section input[type="time"],
+        .form-section input[type="text"] {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-right: 10px;
+            flex: 1 1 auto;
+        }
+
+        .form-section button {
+            background: linear-gradient(135deg, #007bff, #00d9ff);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            box-shadow: 0 0 10px #00d9ff;
+            flex: 1 1 auto;
+        }
+
+        .form-section button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px #00d9ff, 0 0 30px #007bff;
+        }
+
+        /* Slots Section */
+        /* Slots Container */
+        #slots-container {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+
+        /* Slot Card */
+        .slot {
+            background: linear-gradient(135deg, #1f4068, #162447);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 2px solid white;
+            /* White border */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border 0.3s ease-in-out;
+            /* Smooth border transition */
+        }
+
+
+        /* Task Title */
+        .slot h3 {
+            margin: 0;
+            font-size: 1.3em;
+            color: #00d9ff;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .slot-deadline {
+            font-size: 1.2rem;
+        }
+
+        /* Task Item */
+        .task {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            gap: 10px;
+        }
+
+        .task:last-child {
+            border-bottom: none;
+        }
+
+        /* Task Name */
+        .task .task-name {
+            font-size: 1.1em;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        /* Progress Bar Container */
+        .progress-bar-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .not-found-error {
+            font-size: 3rem;
+            text-align: center;
+            background-color: #3d5df4;
+            border-radius: 20px;
+            font-weight: 900;
+            font-family: math;
+        }
+
+        @media (max-width: 768px) {
+            .not-found-error {
+                font-size: 1.2rem;
+                display: flex;
+                height: 30px;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+
+        /* Progress Bar */
+        progress {
+            flex: 1;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            appearance: none;
+            transition: width 0.4s ease-in-out;
+        }
+
+        progress::-webkit-progress-bar {
+            background: #2c2c2c;
+            border-radius: 5px;
+        }
+
+        progress::-webkit-progress-value {
+            background: #00d9ff;
+            border-radius: 5px;
+        }
+
+        /* Progress Buttons */
+        .progress-bar-container button {
+            background: linear-gradient(135deg, #007bff, #00d9ff);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 121, 255, 0.5);
+        }
+
+        .progress-bar-container button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 121, 255, 0.7);
+        }
+
+        .progress-bar-container button:active {
+            transform: scale(0.95);
+        }
+
+        /* Task Action Buttons */
+        .task .btn-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Task Action Buttons - aligned with progress bar */
+        .task .btn-group button {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(255, 76, 76, 0.5);
+        }
+
+        /* Task Name Input */
+        .slot input.task-name {
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            color: rgb(255, 255, 255);
+            font-size: 1em;
+            width: calc(100% - 20px);
+            background-color: #1d1d1d;
+        }
+
+        /* Slot Buttons */
+
+        .add-task-button {
+            color: #fff;
+            /* White text for contrast */
+            background-color: #1ab23e;
+            /* Soft red background */
+            padding: 10px 20px;
+            /* Balanced padding */
+            border-radius: 25px;
+            /* Rounded corners */
+            font-size: 16px;
+            /* Modern font size */
+            font-weight: 500;
+            /* Slightly bold for prominence */
+            border: none;
+            /* Remove default border */
+            box-shadow: 0 4px 12px rgba(255, 76, 76, 0.3);
+            /* Subtle shadow */
+            margin-left: 100px;
+            margin-right: 100px;
+            cursor: pointer;
+            /* Indicating clickable */
+            transition: all 0.3s ease;
+            /* Smooth hover/focus transition */
+            text-decoration: solid;
+            font-weight: 400;
+        }
+
+        .add-task-button:hover {
+            background-color: #098453;
+            /* Slightly darker on hover */
+            box-shadow: 0 6px 15px rgba(98, 255, 70, 0.5);
+            /* Increased shadow on hover */
+        }
+
+        .add-task-button:focus {
+            outline: none;
+            /* Remove outline */
+            box-shadow: 0 0 10px rgba(32, 255, 24, 0.8);
+            /* Glowing effect on focus */
+        }
+
+        /* Delete button in the same line as task deadline */
+        .slot .delete-btn {
+            color: #1b1b2f;
+            font-size: 0.9em;
+            border-radius: 6px;
+            cursor: pointer;
+
+        }
+
+        .task .delete-btn {
+            background: linear-gradient(135deg, #ff4c4c, #ff6b6b);
+            padding: 8px 12px;
+            font-size: 0.9em;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 76, 76, 0.5);
+            margin-left: auto;
+            display: inline-flex;
+        }
+
+        /* Delete button hover effect */
+        .slot .delete-btn:hover,
+        .task .delete-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(255, 76, 76, 0.7);
+        }
+
+        .slot .delete-btn:active,
+        .task .delete-btn:active {
+            transform: scale(0.95);
+        }
+
+        .slot .slot-deadline {
+            font-size: 1.2rem;
+            color: #ffffff;
+            font-weight: 900;
+        }
+
+        .slot .slot-deadline .delete-slot-btn {
+            background-color: #ff4c4c;
+            /* Soft red background */
+            color: #fff;
+            /* White text for contrast */
+            padding: 8px 16px;
+            /* Adequate padding */
+            border-radius: 20px;
+            /* Rounded corners */
+            font-size: 14px;
+            /* Slightly smaller font size */
+            font-weight: 500;
+            /* Slightly bold for prominence */
+            border: none;
+            /* Remove default border */
+            box-shadow: 0 4px 8px rgba(255, 76, 76, 0.3);
+            /* Soft shadow */
+            cursor: pointer;
+            /* Indicating clickable */
+            transition: all 0.3s ease;
+            /* Smooth hover/focus transition */
+        }
+
+        .slot .slot-deadline .delete-slot-btn:hover {
+            background-color: #e84343;
+            /* Slightly darker red on hover */
+            box-shadow: 0 6px 12px rgba(255, 76, 76, 0.5);
+            /* Increased shadow on hover */
+        }
+
+        .slot .slot-deadline .delete-slot-btn:focus {
+            outline: none;
+            /* Remove outline */
+            box-shadow: 0 0 10px rgba(255, 76, 76, 0.8);
+            /* Glowing effect on focus */
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #slots-container {
+                grid-template-columns: 1fr;
+                padding: 5px;
+            }
+
+            .slot {
+                padding: 16px;
+            }
+
+            .task {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .task .btn-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .task button {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+
+
+        /* Dropdown Menu for Mobile */
+        .dropdown {
+            display: none;
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #1f4068;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #e4e4e4;
+            text-decoration: none;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .dropdown-menu a:hover {
+            background: #00d9ff;
+            color: #1f4068;
+        }
+
+        .dropdown-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #e4e4e4;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        /* Round Button for Hamburger Menu */
+        .round-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #00d9ff;
+            color: #1b1b2f;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .round-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0, 217, 255, 0.5);
+        }
+
+        /* Side Panel */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            right: auto;
+            width: 250px;
+            height: 100%;
+            background-color: #1f4068;
+            color: #e4e4e4;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            transition: left 0.3s ease-in-out;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .side-panel-header {
+            margin-bottom: 20px;
+        }
+
+        .side-panel-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #00d9ff;
+        }
+
+        .side-panel-header p {
+            margin: 5px 0 0;
+            font-size: 1em;
+            color: #e4e4e4;
+        }
+
+        .side-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side-panel ul li {
+            margin: 10px 0;
+        }
+
+        .side-panel ul li a {
+            text-decoration: none;
+            color: #e4e4e4;
+            font-size: 1.1em;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .side-panel ul li a:hover {
+            color: #00d9ff;
+        }
+
+        .side-panel.open {
+            left: 0;
+        }
+
+        /* Overall Progress Section */
+        .overall-progress {
+            margin-bottom: 20px;
+        }
+
+        .overall-progress h3 {
+            margin: 0 0 10px;
+            font-size: 1.2em;
+            color: #00d9ff;
+        }
+
+        .overall-progress progress {
+            width: 100%;
+            height: 15px;
+            border-radius: 8px;
+            appearance: none;
+        }
+
+        .overall-progress progress::-webkit-progress-bar {
+            background: #2c2c2c;
+            border-radius: 8px;
+        }
+
+        .overall-progress progress::-webkit-progress-value {
+            background: #00d9ff;
+            border-radius: 8px;
+        }
+
+        /* Side Panel Buttons */
+        .side-panel-btn {
+            display: block;
+            width: 70%;
+            padding: 10px 20px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #007bff, #00d9ff);
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 121, 255, 0.5);
+            text-decoration: none;
+        }
+
+        .side-panel-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 121, 255, 0.7);
+        }
+
+        .side-panel-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Handle long names and emails in the sidebar */
+        .side-panel-header h2,
+        .side-panel-header p {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Optional: Add a tooltip to show full text on hover */
+        .side-panel-header h2:hover,
+        .side-panel-header p:hover {
+            overflow: visible;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div>
+            <!-- Round Button for Hamburger Menu -->
+            <button id="user-menu-btn" class="round-btn">☰</button>
+        </div>
+        <h1>Task Scheduler</h1>
+        <div>
+
+            <a href="/summary"> 🔗Summary</a>
+
+            <div class="dropdown">
+                <button class="dropdown-toggle">☰</button>
+                <div class="dropdown-menu">
+
+                    <a href="/summary">🔗Summary</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel -->
+    <div id="side-panel" class="side-panel">
+        <button id="close-side-panel" class="round-btn" style="align-self: flex-end;">✖</button>
+        <div class="side-panel-header">
+            <h2 id="user-name"></h2>
+            <p id="user-email"></p>
+        </div>
+
+        <ul>
+            <li>
+                <button id="logout-btn" class="side-panel-btn"
+                    style="background: linear-gradient(135deg, #ff4c4c, #ff6b6b);">
+                    Logout
+                </button>
+            </li>
+            <li><button id="terms-btn" class="side-panel-btn">Terms & Conditions</button></li>
+            <li><a href="https://avijitsingh.ct.ws/?i=1" target="_blank" class="side-panel-btn">Visit Developer
+                    Portfolio</a></li>
+        
+        </ul>
+        <p style="color: grey; text-align: center;">Version 3.1.5</p>
+        <p style="color: rgb(255, 255, 255); text-align: center;">&copy; 2025 Avijit Singh</p>
+    </div>
+
+    <!-- Overlay for closing the side panel -->
+    <div id="overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;">
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 id="welcome-heading"></h1>
+
+        <!-- Date Picker Section -->
+        <div class="form-section">
+            <label for="date">Select Date:</label>
+            <input type="date" id="date" name="date">
+            <button id="load-tasks">Load Tasks</button>
+        </div>
+
+        <!-- Add Slot Section -->
+        <div class="form-section">
+            <label for="slot-deadline">Slot Deadline:</label>
+            <input type="time" id="slot-deadline">
+            <button id="add-slot-btn">Add Slot</button>
+        </div>
+
+        <!-- Slots Container -->
+        <div id="slots-container"></div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Automatically load tasks for the current date (IST)
+            const currentDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+            $('#date').val(currentDate);
+            loadTasks(currentDate);
+
+            // Dropdown menu toggle for mobile
+            $('.dropdown-toggle').click(function () {
+                $('.dropdown-menu').toggle();
+            });
+
+            let selectedDate = "";  // Get the latest date passed from Flask
+
+            // Automatically load tasks for the latest date when the page loads
+            if (selectedDate) {
+                loadTasks(selectedDate);
+            }
+
+            // Load tasks when the date is selected
+            $('#load-tasks').click(function () {
+                selectedDate = $('#date').val();
+                if (selectedDate) {
+                    loadTasks(selectedDate);
+                }
+            });
+
+            // Add a new slot
+            $('#add-slot-btn').click(function () {
+                const slotDeadline = $('#slot-deadline').val();
+                const selectedDate = $('#date').val();
+                if (slotDeadline && selectedDate) {
+                    $.post('/add_slot', { date: selectedDate, slot_deadline: slotDeadline }, function () {
+                        loadTasks(selectedDate);
+                    });
+                }
+            });
+
+            // Load tasks for the selected date
+            function loadTasks(date) {
+                $.post('/get_tasks_for_date', { date: date }, function (response) {
+                    const slotsContainer = $('#slots-container');
+                    slotsContainer.empty(); // Clear the previous slots
+
+                    if (response.length > 0) {
+                        // Sort slots by deadline in ascending order
+                        response.sort((a, b) => new Date(`1970-01-01T${a.deadline}`) - new Date(`1970-01-01T${b.deadline}`));
+
+                        response.forEach((slot, index) => {
+                            if (slot.deleted) return;  // Skip deleted slots
+
+                            const slotDiv = $('<div class="slot"></div>');
+                            slotDiv.append(`
+    <p class="slot-deadline">
+        <strong>Slot Deadline:</strong> ${slot.deadline}
+        <button class="delete-slot-btn" data-slot-index="${index}">Delete Slot</button>
+    </p>
+`);
+
+                            // Attach event to delete button
+                            slotDiv.find('.delete-slot-btn').click(function () {
+                                const slotIndex = $(this).data('slot-index'); // Use data attribute to get the correct index
+                                deleteSlot(date, slotIndex);
+                            });
+
+                            slotDiv.append('<h3>Tasks:</h3>');
+
+                            slot.tasks.forEach((task, taskIndex) => {
+                                if (task.deleted) return;  // Skip deleted tasks
+
+                                const taskDiv = $('<div class="task"></div>');
+                                taskDiv.append(`<span class="task-name">${task.task}</span>`);
+
+                                // Add progress bar
+                                const progressBarContainer = $('<div class="progress-bar-container"></div>');
+                                const progressBar = $(`<progress max="100" value="${task.progress || 0}"></progress>`);
+                                const progressControls = $(`
+                            <div>
+                                <button class="decrease-progress">-</button>
+                                <button class="increase-progress">+</button>
+                                <button class="delete-task">Delete</button>
+                            </div>
+                        `);
+
+                                // Declare a variable for the timeout to be used in both increase and decrease actions
+                                let debounceTimeout;
+
+                                // Function to update the task progress in the backend
+                                function updateProgressAfterDelay(date, index, taskIndex, progress) {
+                                    // Clear previous timeout if any (debouncing)
+                                    clearTimeout(debounceTimeout);
+
+                                    // Set a new timeout to update progress after a delay (e.g., 500ms)
+                                    debounceTimeout = setTimeout(function () {
+                                        updateTaskProgress(date, index, taskIndex, progress);
+                                    }, 1500); // Adjust the delay (in ms) as per your requirement
+                                }
+
+                                // Decrease progress
+                                progressControls.find('.decrease-progress').click(function () {
+                                    let currentProgress = parseInt(progressBar.val());
+                                    if (currentProgress > 0) {
+                                        currentProgress -= 10;
+                                        progressBar.val(currentProgress);
+                                        updateProgressAfterDelay(date, index, taskIndex, currentProgress); // Send request after delay
+                                    }
+                                });
+
+                                // Increase progress
+                                progressControls.find('.increase-progress').click(function () {
+                                    let currentProgress = parseInt(progressBar.val());
+                                    if (currentProgress < 100) {
+                                        currentProgress += 10;
+                                        progressBar.val(currentProgress);
+                                        updateProgressAfterDelay(date, index, taskIndex, currentProgress); // Send request after delay
+                                    }
+                                });
+
+
+                                progressBarContainer.append(progressBar);
+                                progressBarContainer.append(progressControls);
+                                taskDiv.append(progressBarContainer);
+
+                                // Function to delete a task
+                                function deleteTask(date, slotIndex, taskIndex) {
+                                    $.post('/delete_task', { date: date, slot_index: slotIndex, task_index: taskIndex }, function () {
+                                        loadTasks(date); // Reload the tasks for the selected date
+                                    }).fail(function () {
+                                        alert('Failed to delete the task. Please try again.');
+                                    });
+                                }
+
+                                // Attach the delete functionality to the delete-task button
+                                progressControls.find('.delete-task').click(function () {
+                                    deleteTask(date, index, taskIndex);
+                                });
+
+                                // Add Delete Task Button
+                                const deleteTaskBtn = $('');
+                                deleteTaskBtn.click(function () {
+                                    deleteTask(date, index, taskIndex);
+                                });
+                                taskDiv.append(deleteTaskBtn);
+
+                                slotDiv.append(taskDiv);
+                            });
+
+
+
+                            // Add task input and button for this slot
+                            const taskInput = $('<input type="text" class="task-name" placeholder="Type your task...">');
+                            const addTaskBtn = $('<button class="add-task-button">Add Task</button>');
+                            addTaskBtn.click(function () {
+                                const taskName = taskInput.val();
+                                if (taskName) {
+                                    addTaskToSlot(date, index, taskName);
+                                }
+                            });
+
+                            slotDiv.append(taskInput);
+                            slotDiv.append(addTaskBtn);
+                            slotsContainer.append(slotDiv);
+                        });
+                    } else {
+                        slotsContainer.append('<p class="not-found-error">No slots available for the date!</p>');
+                    }
+                });
+            }
+
+            // Toggle the checkbox state for a task
+            function toggleTask(date, slotIndex, taskIndex) {
+                $.post('/toggle_task', {
+                    date: date,
+                    slot_index: slotIndex,
+                    task_index: taskIndex
+                });
+            }
+
+            // Function to delete a slot with confirmation
+            function deleteSlot(date, slotIndex) {
+                // Display a confirmation popup
+                const confirmDelete = confirm("Are you sure you want to delete this slot?");
+
+                if (confirmDelete) {
+                    // If the user confirmed, proceed with the deletion
+                    $.post('/delete_slot', { date: date, slot_index: slotIndex }, function () {
+                        loadTasks(date);  // Reload the tasks for the selected date
+                    });
+                } else {
+                    // If the user canceled, do nothing (the slot will not be deleted)
+                    console.log("Slot deletion canceled.");
+                }
+            }
+
+
+            // Function to delete a task
+            function deleteTask(date, slotIndex, taskIndex) {
+                $.post('/delete_task', { date: date, slot_index: slotIndex, task_index: taskIndex }, function () {
+                    loadTasks(date);  // Reload the tasks for the selected date
+                });
+            }
+
+            // Add a new task to a specific slot
+            function addTaskToSlot(date, slotIndex, taskName) {
+                $.post('/add_task', {
+                    date: date,
+                    slot_index: slotIndex,
+                    task_name: taskName
+                }, function () {
+                    loadTasks(date);  // Reload the tasks for the selected date
+                });
+            }
+
+            // Update task progress
+            function updateTaskProgress(date, slotIndex, taskIndex, progress) {
+                $.post('/update_task_progress', {
+                    date: date,
+                    slot_index: slotIndex,
+                    task_index: taskIndex,
+                    progress: progress
+                });
+            }
+
+            // Fetch user details from Flask
+            $.get('/get_user_details', function (data) {
+                $('#user-name').text(data.name);
+                $('#user-email').text(data.email);
+                $('#user-menu-btn').text(data.name.charAt(0).toUpperCase());
+                $('#welcome-heading').text(`Welcome  ${data.name}`);
+            });
+
+            // Toggle side panel
+            $('#user-menu-btn').click(function () {
+                $('#side-panel').toggleClass('open');
+                $('#overlay').toggle();
+            });
+
+           
+
+            // Close side panel on close button click
+            $('#close-side-panel').click(function () {
+                $('#side-panel').removeClass('open');
+                $('#overlay').hide();
+            });
+
+            // Close side panel by tapping outside
+            $('#overlay').click(function () {
+                $('#side-panel').removeClass('open');
+                $(this).hide();
+            });
+
+            // Logout button functionality with confirmation
+            $('#logout-btn').click(function () {
+                if (confirm('Are you sure you want to log out?')) {
+                    window.location.href = '/logout';
+                }
+            });
+
+            // Terms & Conditions button functionality
+            $('#terms-btn').click(function () {
+                window.location.href = '/terms';
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>
