@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
 import random
@@ -16,7 +17,12 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')  # Load secret key from .env
-
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_FILE_DIR'] = './flask_sessions'  # Folder to store session files
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'session:'  # Prefix to distinguish session files
+Session(app)
 # Construct Firebase credentials from environment variables
 firebase_credentials = {
     "type": os.getenv("FIREBASE_TYPE"),
