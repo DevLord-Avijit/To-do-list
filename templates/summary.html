@@ -26,11 +26,11 @@
 
         /* Container Styles */
         #summary-section {
-            max-width: 98%;
+            max-width: 100%;
             margin: auto;
             background: rgba(18, 38, 78, 0.9); /* Semi-transparent background */
             padding: 30px;
-            margin-top: 65px;
+            margin-top: 150px;
             border-radius: 15px;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
             animation: fadeIn 1s ease-in-out;
@@ -521,30 +521,8 @@
         <a href="/" class="menu-link">Home</a> <!-- New link to navigate back to / -->
     </div>
 
-    <!-- Side Panel -->
-    <div id="side-panel" class="side-panel">
-        <button id="close-side-panel" class="side-panel-btn close-btn">✖</button> <!-- Updated close button -->
-        <div class="side-panel-header">
-            <h2 id="user-name">User Name</h2>
-            <p id="user-email">user@example.com</p>
-        </div>
-        <div class="overall-progress">
-            <h3>Overall Progress</h3>
-            <progress id="overall-progress-bar" max="100" value="0"></progress>
-        </div>
-        <ul>
-            <li><button id="logout-btn" class="side-panel-btn">Logout</button></li>
-            <li><button id="terms-btn" class="side-panel-btn">Terms & Conditions</button></li>
-            <li><a href="https://developer-portfolio.com" target="_blank" class="side-panel-btn">Visit Developer Portfolio</a></li>
-            <li><a href="https://github.com/developer" target="_blank" class="side-panel-btn">Visit GitHub</a></li>
-        </ul>
-        <p style="color: grey; text-align: center; margin-top: auto;">Version 1.0.0</p>
-        <p style="color: grey; text-align: center;">&copy; 2023 Task Scheduler</p>
-    </div>
-
-    <!-- Overlay -->
-    <div id="overlay"></div>
-
+    <!-- Removed Side Panel and Overlay -->
+    
     <div id="summary-section">
         <h1>Task Summary</h1>
         <label for="summary-date">Select Date:</label>
@@ -553,27 +531,26 @@
             <button id="load-summary">Load Summary</button>
             <button onclick="window.location.href='/'">Edit Task</button>
         </div>
+        <!-- Moved Overall Progress Section Here -->
         <div id="overall-progress-container">
-            <div id="overall-progress-title">Overall Progress</div>
+            <h2>Overall Progress for Selected Day</h2>
             <div id="overall-progress-bar">
                 <div id="overall-progress-bar-fill"></div>
             </div>
+            <p id="overall-progress-percentage" class="progress-percentage">0%</p>
         </div>
-        <div id="summary-container"></div>
+        <div id="summary-container">
+        </div>
     </div>
 
     <script>
         $(document).ready(function () {
-            // Fetch user details and populate the side panel and initials button
+            // Fetch user details and populate the initials button
             function fetchUserDetails() {
                 $.get('/get_user_details', function (response) {
-                    if (response.name && response.email) {
-                        $('#user-name').text(response.name);
-                        $('#user-email').text(response.email);
+                    if (response.name) {
                         const initials = response.name.split(' ').map(word => word[0]).join('').toUpperCase();
                         $('#user-initials').text(initials); // Set initials in the button
-                    } else if (response.error) {
-                        alert(response.error);
                     }
                 }).fail(function () {
                     alert('Failed to fetch user details.');
@@ -582,18 +559,6 @@
 
             // Fetch user details immediately after page load
             fetchUserDetails();
-
-            // Open side panel on initials button click
-            $('#user-initials').click(function () {
-                $('#side-panel').addClass('open');
-                $('#overlay').show();
-            });
-
-            // Close side panel
-            $('#close-side-panel, #overlay').click(function () {
-                $('#side-panel').removeClass('open');
-                $('#overlay').hide();
-            });
 
             $('#load-summary').click(function () {
                 const summaryDate = $('#summary-date').val();
@@ -608,6 +573,7 @@
                 $.post('/get_tasks_for_date', { date: date }, function (response) {
                     const summaryContainer = $('#summary-container');
                     const overallProgressBarFill = $('#overall-progress-bar-fill');
+                    const overallProgressPercentage = $('#overall-progress-percentage');
                     summaryContainer.empty();
 
                     let totalTasks = 0;
@@ -618,18 +584,18 @@
                         slotDiv.append(`<p><strong>⏰ Slot Deadline: ${slot.deadline}</strong></p>`);
 
                         slot.tasks.forEach((task) => {
-                            const taskContainer = $('<div class="task-container"></div>'); // New container for each task
+                            const taskContainer = $('<div class="task-container"></div>');
                             const taskDiv = $('<div class="summary-task"></div>');
                             const statusCircle = $('<div class="task-status"></div>').text(`${task.progress || 0}%`);
                             const progressBar = $('<div class="progress-bar"><div class="progress-bar-fill"></div></div>');
 
                             progressBar.find('.progress-bar-fill').css('width', (task.progress || 0) + '%');
-                            taskDiv.append($('<span class="task-name"></span>').text(`◽  ${task.task} `)); // Add bullet point here
+                            taskDiv.append($('<span class="task-name"></span>').text(`◽  ${task.task} `));
 
                             taskDiv.append(statusCircle);
-                            taskContainer.append(taskDiv); // Add task details to the container
-                            taskContainer.append(progressBar); // Add progress bar to the container
-                            slotDiv.append(taskContainer); // Add the task container to the slot
+                            taskContainer.append(taskDiv);
+                            taskContainer.append(progressBar);
+                            slotDiv.append(taskContainer);
 
                             totalTasks++;
                             totalProgress += task.progress || 0;
@@ -637,8 +603,10 @@
 
                         summaryContainer.append(slotDiv);
                     });
+
                     const overallCompletion = totalTasks > 0 ? (totalProgress / totalTasks) : 0;
                     overallProgressBarFill.css('width', overallCompletion + '%');
+                    overallProgressPercentage.text(`${Math.round(overallCompletion)}%`);
                 });
             }
         });
