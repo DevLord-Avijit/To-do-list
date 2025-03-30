@@ -12,5 +12,5 @@ WTForms
 requests
 gunicorn
 python-dotenv
-
+firebase_admin
 email_validator
