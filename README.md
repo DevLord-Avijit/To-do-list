@@ -37,7 +37,7 @@ This is a **To-Do List Web App** built using **Flask, HTML, CSS, and JavaScript*
 ### 1️⃣ Clone the Repository
 ```sh
  git clone https://github.com/DevLord-Avijit/To-do-list.git
- cd todo-list-app
+ cd To-do-list
 ```
 
 ### 2️⃣ Create a Virtual Environment
