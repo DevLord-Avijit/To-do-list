@@ -183,6 +183,26 @@
             font-size: 1.1em;
             color: #ffffff;
             font-weight: bold;
+            word-wrap: break-word;
+            /* Break long words */
+            overflow-wrap: break-word;
+            /* Ensure wrapping for long words */
+            white-space: normal;
+            /* Allow text to wrap to the next line */
+        }
+
+        /* Optional: Add ellipsis for extremely long text */
+        .task .task-name.ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            /* Fallback for non-WebKit browsers */
+            white-space: nowrap;
+            /* Fallback for single-line ellipsis */
+            display: -webkit-box;
+            
+            /* Limit to 2 lines */
+            -webkit-box-orient: vertical;
         }
 
         /* Progress Bar Container */
@@ -670,7 +690,7 @@
             <li><button id="terms-btn" class="side-panel-btn">Terms & Conditions</button></li>
             <li><a href="https://avijitsingh.ct.ws/?i=1" target="_blank" class="side-panel-btn">Visit Developer
                     Portfolio</a></li>
-        
+
         </ul>
         <p style="color: grey; text-align: center;">Version 3.1.5</p>
         <p style="color: rgb(255, 255, 255); text-align: center;">&copy; 2025 Avijit Singh</p>
@@ -743,13 +763,14 @@
 
             // Load tasks for the selected date
             function loadTasks(date) {
-                $.post('/get_tasks_for_date', { date: date }, function (response) {
+                const cacheBuster = new Date().getTime(); // Generate a unique timestamp
+                $.post(`/get_tasks_for_date?cacheBuster=${cacheBuster}`, { date: date }, function (response) {
                     const slotsContainer = $('#slots-container');
                     slotsContainer.empty(); // Clear the previous slots
 
                     if (response.length > 0) {
-                        // Sort slots by deadline in ascending order
-                        response.sort((a, b) => new Date(`1970-01-01T${a.deadline}`) - new Date(`1970-01-01T${b.deadline}`));
+                        // Remove the sorting logic
+                        // response.sort((a, b) => new Date(`1970-01-01T${a.deadline}`) - new Date(`1970-01-01T${b.deadline}`));
 
                         response.forEach((slot, index) => {
                             if (slot.deleted) return;  // Skip deleted slots
@@ -940,7 +961,7 @@
                 $('#overlay').toggle();
             });
 
-           
+
 
             // Close side panel on close button click
             $('#close-side-panel').click(function () {
