@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
 import random
@@ -17,12 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')  # Load secret key from .env
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = True
-app.config['SESSION_FILE_DIR'] = './flask_sessions'  # Folder to store session files
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'session:'  # Prefix to distinguish session files
-Session(app)
+
 # Construct Firebase credentials from environment variables
 firebase_credentials = {
     "type": os.getenv("FIREBASE_TYPE"),
@@ -241,14 +235,23 @@ def load_tasks():
         tasks[doc.id] = data['slots']
     return tasks
 
-# Forgot Password
+def rearrange_slots(email, date):
+    """
+    Rearrange the slots for a given date in ascending order of slot deadlines.
+    """
+    doc_ref = tasks_ref.document(email).collection("tasks").document(date)
+    doc = doc_ref.get()
+    if doc.exists:
+        slots = doc.to_dict().get('slots', [])
+        slots.sort(key=lambda slot: datetime.strptime(slot['deadline'], "%H:%M"))
+        doc_ref.set({'slots': slots})
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
         user_doc = users_ref.document(email).get()
-        if user_doc.exists:
+        if user_doc.exists():
             otp = random.randint(100000, 999999)
             send_otp(email, otp)
             session['reset_password'] = {'email': email, 'otp': otp}
@@ -293,10 +296,6 @@ def get_user_details():
             return jsonify({'name': user_data.get('username', ''), 'email': email})
     return jsonify({'error': 'User not logged in'}), 401
 
-
-
-# ...existing code...
-
 @app.route('/add_slot', methods=['POST'])
 def add_slot():
     if 'user' not in session:
@@ -311,7 +310,8 @@ def add_slot():
         slots = doc.to_dict().get('slots', []) if doc.exists else []
         slots.append({'deadline': slot_deadline, 'tasks': []})
         doc_ref.set({'slots': slots})
-    
+        rearrange_slots(email, date)  # Rearrange slots after adding
+
     return jsonify({"status": "success"})
 
 @app.route('/add_task', methods=['POST'])
@@ -330,6 +330,7 @@ def add_task():
         if slot_index < len(slots):
             slots[slot_index]['tasks'].append({'task': task_name, 'checked': False, 'progress': 0, 'deleted': False})
             doc_ref.set({'slots': slots})
+            rearrange_slots(email, date)  # Rearrange slots after modifying tasks
     
     return jsonify({"status": "success"})
 
@@ -398,6 +399,7 @@ def delete_slot():
             del slots[slot_index]  # Remove the correct slot
             logging.debug(f"Deleted slot {slot_index} for date {date}")
             doc_ref.set({'slots': slots})
+            rearrange_slots(email, date)  # Rearrange slots after deletion
         else:
             logging.warning(f"Slot index {slot_index} out of range for date {date}")
     else:
@@ -422,6 +424,7 @@ def delete_task():
             del slots[slot_index]['tasks'][task_index]  # Remove task completely
             logging.debug(f"Deleted task {task_index} in slot {slot_index} for date {date}")
             doc_ref.set({'slots': slots})
+            rearrange_slots(email, date)  # Rearrange slots after modifying tasks
         else:
             logging.warning(f"Task index {task_index} or slot index {slot_index} out of range for date {date}")
     else:
