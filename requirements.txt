@@ -13,4 +13,5 @@ requests
 gunicorn
 python-dotenv
 firebase_admin
+flask-session
 email_validator
