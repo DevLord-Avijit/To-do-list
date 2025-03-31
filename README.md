@@ -63,6 +63,46 @@ SECRET_KEY=your_secret_key
 MAIL_USERNAME=your_email@gmail.com
 MAIL_PASSWORD=your_email_password
 ```
+5. Set up the full `.env`:
+```ini
+SECRET_KEY=your_secret_key_here
+FIREBASE_CREDENTIALS_PATH=your-firebase-credentials.json
+
+# SMTP Configuration - Get these from Gmail
+# 1. Go to Gmail Account Settings
+# 2. Enable 2-Step Verification
+# 3. Create an App Password
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_EMAIL=your.email@gmail.com
+SMTP_PASSWORD=your_app_password_here
+
+# Firebase Keys
+# Get these from Firebase Console (https://console.firebase.google.com):
+# 1. Go to Project Settings
+# 2. Service Accounts tab
+# 3. Generate new private key
+FIREBASE_TYPE=service_account
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_PRIVATE_KEY_ID=your_private_key_id
+FIREBASE_PRIVATE_KEY="your_private_key_here"
+FIREBASE_CLIENT_EMAIL=your_client_email
+FIREBASE_CLIENT_ID=your_client_id
+FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
+FIREBASE_AUTH_PROVIDER_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
+FIREBASE_CLIENT_CERT_URL=your_client_cert_url
+FIREBASE_UNIVERSE_DOMAIN=googleapis.com
+
+# Google OAuth Credentials
+# Get these from Google Cloud Console (https://console.cloud.google.com):
+# 1. Create a new project or select existing
+# 2. Enable OAuth 2.0
+# 3. Configure OAuth consent screen
+# 4. Create OAuth client ID credentials
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
 ### 5️⃣ Run the Flask App
 ```sh
