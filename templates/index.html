@@ -809,7 +809,7 @@
                             </div>
                         `);
 
-                                // Declare a variable for the timeout to be used in both increase and decrease actions
+                                 // Declare a variable for the timeout to be used in both increase and decrease actions
                                 let debounceTimeout;
 
                                 // Function to update the task progress in the backend
@@ -850,11 +850,13 @@
 
                                 // Function to delete a task
                                 function deleteTask(date, slotIndex, taskIndex) {
-                                    $.post('/delete_task', { date: date, slot_index: slotIndex, task_index: taskIndex }, function () {
-                                        loadTasks(date); // Reload the tasks for the selected date
-                                    }).fail(function () {
-                                        alert('Failed to delete the task. Please try again.');
-                                    });
+                                    if (confirm("Are you sure you want to delete this task?")) { // Confirmation alert
+                                        $.post('/delete_task', { date: date, slot_index: slotIndex, task_index: taskIndex }, function () {
+                                            loadTasks(date); // Reload the tasks for the selected date
+                                        }).fail(function () {
+                                            alert('Failed to delete the task. Please try again.');
+                                        });
+                                    }
                                 }
 
                                 // Attach the delete functionality to the delete-task button
