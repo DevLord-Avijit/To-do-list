@@ -31,6 +31,7 @@ This is a **To-Do List Web App** built using **Flask, HTML, CSS, and JavaScript*
 ├── requirements.txt
 ├── README.md
 └── app.py
+└── .env
 ```
 
 ## 🏗️ Installation & Setup
