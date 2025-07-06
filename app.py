@@ -10,6 +10,7 @@ import logging
 from dotenv import load_dotenv  # For loading environment variables
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from flask import send_from_directory
 
 # Load environment variables from .env file
 load_dotenv()
@@ -317,11 +318,19 @@ def add_slot():
 @app.route('/add_task', methods=['POST'])
 def add_task():
     if 'user' not in session:
-        return jsonify({"status": "error", "message": "Unauthorized"})
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
     email = session['user']
-    date = request.form.get('date')
-    slot_index = int(request.form.get('slot_index'))
-    task_name = request.form.get('task_name')
+
+    # Accept JSON or form data
+    if request.is_json:
+        data = request.get_json()
+        date = data.get('date')
+        slot_index = int(data.get('slot_index'))
+        task_name = data.get('task_name')
+    else:
+        date = request.form.get('date')
+        slot_index = int(request.form.get('slot_index'))
+        task_name = request.form.get('task_name')
 
     if date and task_name is not None:
         doc_ref = tasks_ref.document(email).collection("tasks").document(date)
@@ -330,9 +339,11 @@ def add_task():
         if slot_index < len(slots):
             slots[slot_index]['tasks'].append({'task': task_name, 'checked': False, 'progress': 0, 'deleted': False})
             doc_ref.set({'slots': slots})
-            rearrange_slots(email, date)  # Rearrange slots after modifying tasks
-    
-    return jsonify({"status": "success"})
+            rearrange_slots(email, date)
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "error", "message": "Invalid slot index"}), 400
+    return jsonify({"status": "error", "message": "Missing data"}), 400
 
 @app.route('/update_task_progress', methods=['POST'])
 def update_task_progress():
@@ -412,25 +423,30 @@ def delete_task():
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
-    date = request.form.get('date')
-    slot_index = int(request.form.get('slot_index'))
-    task_index = int(request.form.get('task_index'))
+
+    # Accept JSON or form data
+    if request.is_json:
+        data = request.get_json()
+        date = data.get('date')
+        slot_index = int(data.get('slot_index'))
+        task_index = int(data.get('task_index'))
+    else:
+        date = request.form.get('date')
+        slot_index = int(request.form.get('slot_index'))
+        task_index = int(request.form.get('task_index'))
 
     doc_ref = tasks_ref.document(email).collection("tasks").document(date)
     doc = doc_ref.get()
     if doc.exists:
         slots = doc.to_dict().get('slots', [])
         if slot_index < len(slots) and task_index < len(slots[slot_index]['tasks']):
-            del slots[slot_index]['tasks'][task_index]  # Remove task completely
-            logging.debug(f"Deleted task {task_index} in slot {slot_index} for date {date}")
+            del slots[slot_index]['tasks'][task_index]
             doc_ref.set({'slots': slots})
-            rearrange_slots(email, date)  # Rearrange slots after modifying tasks
+            rearrange_slots(email, date)
+            return jsonify({"status": "success"}), 200
         else:
-            logging.warning(f"Task index {task_index} or slot index {slot_index} out of range for date {date}")
-    else:
-        logging.warning(f"Document for date {date} does not exist")
-    
-    return jsonify({"status": "success"})
+            return jsonify({"status": "error", "message": "Invalid slot/task index"}), 400
+    return jsonify({"status": "error", "message": "Document not found"}), 404
 
 @app.route('/summary')
 def summary():
@@ -439,8 +455,19 @@ def summary():
     tasks = load_tasks()
     return render_template('summary.html', tasks=tasks)
 
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('.', 'manifest.json', mimetype='application/manifest+json')
+
+@app.route('/service-worker.js')
+def service_worker():
+    return send_from_directory('.', 'service-worker.js', mimetype='application/javascript')
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
 

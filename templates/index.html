@@ -5,18 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Scheduler</title>
-
+    <!-- PWA Manifest & Meta -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1f4068">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Task Scheduler">
+    <link rel="apple-touch-icon" href="/static/images.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/images.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         * {
             font-size: 1.05rem;
+            box-sizing: border-box;
         }
 
-        /* General Body Styles */
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1b1b2f, #162447, #1f4068, #1b1b2f);
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #181c24 0%, #232a34 100%);
             color: #e4e4e4;
-            background-color: #1f4068;
             margin: 0;
             padding: 0;
         }
@@ -26,7 +32,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #1f4068;
+            background: rgba(31, 64, 104, 0.95);
             padding: 10px 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             position: sticky;
@@ -38,6 +44,7 @@
             color: #00d9ff;
             font-size: 1.5em;
             margin: 0;
+            letter-spacing: 2px;
         }
 
         .navbar a {
@@ -57,9 +64,9 @@
             max-width: 1200px;
             margin: 40px auto;
             padding: 20px;
-            background: rgba(30, 30, 47, 0.9);
-            border-radius: 16px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(30, 30, 47, 0.92);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -80,82 +87,244 @@
         }
 
 
-        /* Form Section */
-        .form-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .form-section label {
-            font-size: 1.3em;
-            flex: 1 1 100px;
-        }
-
-        .form-section input[type="date"],
-        .form-section input[type="time"],
-        .form-section input[type="text"] {
-            padding: 10px;
+        /* --- Modern Input Styles --- */
+        .form-section input[type="text"],
+        .slot input.task-name {
+            padding: 12px 16px 12px 44px;
             border: none;
-            border-radius: 8px;
-            font-size: 1em;
+            border-radius: 16px;
+            font-size: 1.08em;
+            background: linear-gradient(90deg, #232a34 60%, #1f4068 100%);
+            color: #00eaff;
+            /* Brighter text for contrast */
+            box-shadow: 0 2px 16px 0 #00eaff33, 0 1.5px 0 #00eaff inset;
+            outline: none;
             margin-right: 10px;
             flex: 1 1 auto;
+            border: 2px solid #232a34;
+            position: relative;
+            transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
         }
 
-        .form-section button {
-            background: linear-gradient(135deg, #007bff, #00d9ff);
-            color: white;
-            padding: 10px 20px;
+        .form-section input[type="text"]:focus,
+        .slot input.task-name:focus {
+            background: linear-gradient(90deg, #1f4068 60%, #00eaff 100%);
+            border-color: #00eaff;
+            box-shadow: 0 0 0 2px #00eaff99, 0 2px 16px 0 #00eaff33;
+            color: #fff;
+        }
+
+        .form-section input[type="text"]::placeholder,
+        .slot input.task-name::placeholder {
+            color: #00eaffcc;
+            opacity: 1;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* --- Techy Button Styles --- */
+        .form-section button,
+        .add-task-button,
+        .delete-slot-btn,
+        .progress-bar-container button,
+        .side-panel-btn {
             border: none;
-            border-radius: 8px;
+            border-radius: 16px;
+            background: linear-gradient(90deg, #00eaff 0%, #005eff 100%);
+            color: #fff;
+            text-shadow: 0 1px 8px #00eaff88;
+            font-weight: 700;
+            font-size: 1.05em;
+            padding: 12px 28px;
+            box-shadow: 0 2px 16px 0 #00eaff33, 0 1.5px 0 #00eaff inset;
             cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-            box-shadow: 0 0 10px #00d9ff;
-            flex: 1 1 auto;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s, color 0.2s;
+            outline: none;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .form-section button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 20px #00d9ff, 0 0 30px #007bff;
+        .form-section button:hover,
+        .add-task-button:hover,
+        .delete-slot-btn:hover,
+        .progress-bar-container button:hover,
+        .side-panel-btn:hover {
+            background: linear-gradient(90deg, #005eff 0%, #00eaff 100%);
+            color: #fff;
+            box-shadow: 0 4px 24px #00eaff55, 0 2px 16px 0 #00eaff33;
+            transform: translateY(-2px) scale(1.04);
         }
 
-        /* Slots Section */
-        /* Slots Container */
-        #slots-container {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 10px;
+        .form-section button:active,
+        .add-task-button:active,
+        .delete-slot-btn:active,
+        .progress-bar-container button:active,
+        .side-panel-btn:active {
+            transform: scale(0.97);
+            background: linear-gradient(90deg, #00eaff 0%, #005eff 100%);
+        }
+
+        /* Add-task button techy style */
+        .add-task-button {
+            margin: 16px 0 0 0;
+            width: 100%;
+            border-radius: 16px;
+            font-size: 1.08em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #1ab23e 0%, #00eaff 100%);
+            color: #fff;
+            padding: 14px 0;
+            box-shadow: 0 2px 16px 0 #1ab23e55, 0 1.5px 0 #00eaff inset;
+            text-shadow: 0 1px 8px #1ab23e88;
+        }
+
+        .add-task-button:hover {
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
+            box-shadow: 0 4px 24px #00eaff55, 0 2px 16px 0 #1ab23e33;
+        }
+
+        /* --- Flatpickr Techy Theme Override --- */
+        .flatpickr-calendar {
+            background: #181c24 !important;
+            border-radius: 16px;
+            border: 2px solid #00eaff;
+            color: #e4e4e4;
+            box-shadow: 0 8px 32px #00eaff33;
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+        }
+
+        .flatpickr-months {
+            background: #232a34 !important;
+            color: #00eaff !important;
+        }
+
+        .flatpickr-current-month,
+        .flatpickr-monthDropdown-months,
+        .flatpickr-weekdays {
+            background: #232a34 !important;
+            color: #00eaff !important;
+        }
+        span.flatpickr-weekday{
+            color: white;
+        }
+        .flatpickr-day {
+            background: transparent;
+            color: #e4e4e4;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .flatpickr-day.today {
+            border: 2px solid #00eaff;
+            background: #232a34;
+            color: #00eaff;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange {
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%) !important;
+            color: #ffffff !important;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #00eaff55;
+        }
+
+        .flatpickr-day:hover,
+        .flatpickr-day:focus {
+            background: #00eaff !important;
+            color: #181c24 !important;
+        }
+
+        .flatpickr-day.disabled,
+        .flatpickr-day.prevMonthDay,
+        .flatpickr-day.nextMonthDay {
+            color: #444c5e !important;
+            background: #232a34 !important;
+            opacity: 0.5;
+        }
+
+        .flatpickr-time input,
+        .flatpickr-time .flatpickr-am-pm {
+            background: #232a34;
+            color: #00eaff;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .flatpickr-months .flatpickr-month {
+            color: #00eaff;
+        }
+
+        .flatpickr-current-month input.cur-year {
+            background: transparent;
+            color: #00eaff;
+        }
+
+        .flatpickr-input[readonly] {
+            background: linear-gradient(90deg, #232a34 60%, #1f4068 100%);
+            color: #00eaff;
+            border: 2px solid #232a34;
+            box-shadow: 0 2px 16px 0 #00eaff33, 0 1.5px 0 #00eaff inset;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .flatpickr-input[readonly]:focus {
+            border-color: #00eaff;
+            background: linear-gradient(90deg, #1f4068 60%, #00eaff 100%);
+            color: #fff;
+            box-shadow: 0 0 0 2px #00eaff99, 0 2px 16px 0 #00eaff33;
+        }
+
+        /* --- Progress Bar Styles --- */
+        progress {
+            flex: 1;
+            height: 14px;
+            border-radius: 8px;
+            overflow: hidden;
+            appearance: none;
+            transition: width 0.4s ease-in-out;
+            background: #232a34;
+            box-shadow: 0 2px 16px 0 #00eaff33;
+        }
+
+        progress::-webkit-progress-bar {
+            background: #232a34;
+        }
+
+        progress::-webkit-progress-value {
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
+            box-shadow: 0 2px 16px 0 #00eaff33;
         }
 
         /* Slot Card */
         .slot {
-            background: linear-gradient(135deg, #1f4068, #162447);
-            border-radius: 12px;
+            background: linear-gradient(135deg, #232a34 0%, #1f4068 100%);
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 24px #00eaff22;
             display: flex;
             flex-direction: column;
             gap: 20px;
-            border: 2px solid white;
-            /* White border */
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border 0.3s ease-in-out;
-            /* Smooth border transition */
+            border: 2px solid #232a34;
+            transition: transform 0.3s, box-shadow 0.3s, border 0.3s;
         }
 
+        .slot:hover {
+            border-color: #00eaff;
+            box-shadow: 0 8px 32px #00eaff33;
+            transform: translateY(-2px) scale(1.01);
+        }
 
         /* Task Title */
         .slot h3 {
             margin: 0;
             font-size: 1.3em;
-            color: #00d9ff;
+            color: #00eaff;
             font-weight: 600;
             text-transform: uppercase;
         }
@@ -200,7 +369,7 @@
             white-space: nowrap;
             /* Fallback for single-line ellipsis */
             display: -webkit-box;
-            
+
             /* Limit to 2 lines */
             -webkit-box-orient: vertical;
         }
@@ -236,30 +405,29 @@
         /* Progress Bar */
         progress {
             flex: 1;
-            height: 10px;
-            border-radius: 5px;
+            height: 12px;
+            border-radius: 8px;
             overflow: hidden;
             appearance: none;
             transition: width 0.4s ease-in-out;
+            background: #232a34;
         }
 
         progress::-webkit-progress-bar {
-            background: #2c2c2c;
-            border-radius: 5px;
+            background: #232a34;
         }
 
         progress::-webkit-progress-value {
-            background: #00d9ff;
-            border-radius: 5px;
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
         }
 
         /* Progress Buttons */
         .progress-bar-container button {
-            background: linear-gradient(135deg, #007bff, #00d9ff);
             border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #007bff, #00eaff);
             color: white;
             padding: 6px 12px;
-            border-radius: 6px;
             cursor: pointer;
             font-size: 0.8em;
             font-weight: bold;
@@ -292,61 +460,6 @@
             cursor: pointer;
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             box-shadow: 0 4px 10px rgba(255, 76, 76, 0.5);
-        }
-
-        /* Task Name Input */
-        .slot input.task-name {
-            margin-top: 10px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            color: rgb(255, 255, 255);
-            font-size: 1em;
-            width: calc(100% - 20px);
-            background-color: #1d1d1d;
-        }
-
-        /* Slot Buttons */
-
-        .add-task-button {
-            color: #fff;
-            /* White text for contrast */
-            background-color: #1ab23e;
-            /* Soft red background */
-            padding: 10px 20px;
-            /* Balanced padding */
-            border-radius: 25px;
-            /* Rounded corners */
-            font-size: 16px;
-            /* Modern font size */
-            font-weight: 500;
-            /* Slightly bold for prominence */
-            border: none;
-            /* Remove default border */
-            box-shadow: 0 4px 12px rgba(255, 76, 76, 0.3);
-            /* Subtle shadow */
-            margin-left: 100px;
-            margin-right: 100px;
-            cursor: pointer;
-            /* Indicating clickable */
-            transition: all 0.3s ease;
-            /* Smooth hover/focus transition */
-            text-decoration: solid;
-            font-weight: 400;
-        }
-
-        .add-task-button:hover {
-            background-color: #098453;
-            /* Slightly darker on hover */
-            box-shadow: 0 6px 15px rgba(98, 255, 70, 0.5);
-            /* Increased shadow on hover */
-        }
-
-        .add-task-button:focus {
-            outline: none;
-            /* Remove outline */
-            box-shadow: 0 0 10px rgba(32, 255, 24, 0.8);
-            /* Glowing effect on focus */
         }
 
         /* Delete button in the same line as task deadline */
@@ -449,6 +562,16 @@
             .task button {
                 flex: 1;
                 text-align: center;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .form-section input,
+            .form-section button {
+                font-size: 1em;
+                padding: 10px 12px 10px 40px;
             }
         }
 
@@ -607,7 +730,7 @@
             width: 70%;
             padding: 10px 20px;
             margin: 10px 0;
-            background: linear-gradient(135deg, #007bff, #00d9ff);
+            background: linear-gradient(135deg, #007bff, #00eaff);
             color: white;
             text-align: center;
             border: none;
@@ -645,8 +768,145 @@
             white-space: normal;
             word-wrap: break-word;
         }
+
+        /* Install PWA Button Styles */
+        #install-pwa-btn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 2000;
+            background: linear-gradient(135deg, #007bff, #00eaff);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 32px;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            /* Remove display: none to always show, JS will hide if not needed */
+        }
+
+        #install-pwa-btn[hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            #install-pwa-btn {
+                bottom: 16px;
+                right: 16px;
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+
+        /* Modern text input for tasks */
+        .slot input.task-name {
+            margin-top: 10px;
+            padding: 12px 16px 12px 44px;
+            border: none;
+            border-radius: 16px;
+            color: #e4e4e4;
+            font-size: 1em;
+            width: 100%;
+            background: #232a34;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1.5px solid #232a34;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M4 12h16M12 4v16"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 14px center;
+            background-size: 20px 20px;
+            outline: none;
+            transition: box-shadow 0.2s, background 0.2s, border 0.2s;
+        }
+
+        .slot input.task-name:focus {
+            background: #1f4068;
+            border-color: #00eaff;
+            box-shadow: 0 0 0 2px #00eaff33;
+        }
+
+        /* Add-task button minimal style */
+        .add-task-button {
+            margin: 16px 0 0 0;
+            width: 100%;
+            border-radius: 16px;
+            font-size: 1.05em;
+            font-weight: 500;
+            background: linear-gradient(90deg, #1ab23e 0%, #00eaff 100%);
+            color: #fff;
+            padding: 12px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            outline: none;
+            letter-spacing: 1px;
+        }
+
+        .add-task-button:hover {
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
+            box-shadow: 0 4px 16px #00eaff33;
+            transform: translateY(-2px) scale(1.03);
+        }
+
+        .add-task-button:active {
+            transform: scale(0.97);
+        }
+
+        /* Prevent manual typing in date and time inputs */
+        .form-section input[type="date"],
+        .form-section input[type="time"] {
+            pointer-events: auto;
+        }
+
+        .form-section input[type="date"]:read-only,
+        .form-section input[type="time"]:read-only {
+            background-color: #232a34;
+        }
+
+        /* Custom Flatpickr overrides for minimal modern look */
+        .flatpickr-calendar {
+            background: #232a34;
+            border-radius: 16px;
+            border: 1.5px solid #00eaff;
+            color: #e4e4e4;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange,
+        .flatpickr-day:hover {
+            background: #00eaff;
+            color: #fff;
+        }
+
+        .flatpickr-time {
+            background: #232a34 !important;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .flatpickr-time input,
+        .flatpickr-time .flatpickr-am-pm {
+            background: #232a34;
+            color: #00eaff;
+            border-radius: 8px;
+            border: none;
+            font-size: 1.1em;
+        }
+
+        .flatpickr-time input:focus {
+            outline: 2px solid #00eaff;
+        }
+
+        .flatpickr-time-separator {
+            color: #00eaff;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 
 <body>
@@ -709,19 +969,25 @@
         <!-- Date Picker Section -->
         <div class="form-section">
             <label for="date">Select Date:</label>
-            <input type="date" id="date" name="date">
+            <input type="text" id="date" name="date" readonly placeholder="Pick a date">
             <button id="load-tasks">Load Tasks</button>
         </div>
 
         <!-- Add Slot Section -->
         <div class="form-section">
             <label for="slot-deadline">Slot Deadline:</label>
-            <input type="time" id="slot-deadline">
+            <input type="text" id="slot-deadline" class="custom-time" readonly placeholder="Pick a time">
             <button id="add-slot-btn">Add Slot</button>
         </div>
 
         <!-- Slots Container -->
         <div id="slots-container"></div>
+    </div>
+
+    <!-- Install PWA Button -->
+    <button id="install-pwa-btn" hidden>Install App</button>
+    <div id="pwa-ios-message" style="display:none;position:fixed;bottom:32px;right:32px;z-index:2000;background:#fff;color:#1f4068;padding:16px 24px;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.25);font-weight:bold;">
+        To install, tap <span style="font-size:1.2em;">&#x2191;</span> and "Add to Home Screen"
     </div>
 
     <script>
@@ -992,6 +1258,116 @@
         });
 
 
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/service-worker.js');
+            });
+        }
+
+        // PWA Install Prompt Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-pwa-btn');
+        const iosMsg = document.getElementById('pwa-ios-message');
+
+        function isIos() {
+            return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+        }
+
+        function isInStandaloneMode() {
+            return (window.matchMedia('(display-mode: standalone)').matches) ||
+                   ('standalone' in window.navigator && window.navigator.standalone);
+        }
+
+        // Hide both install button and iOS message by default
+        installBtn.hidden = true;
+        iosMsg.style.display = 'none';
+
+        // Only show install button if user is logged in
+        function canShowInstallButton() {
+            // If you set window.isLoggedIn in your template, use that:
+            return typeof window.isLoggedIn === "undefined" || window.isLoggedIn === true || window.isLoggedIn === "true";
+        }
+
+        // Show install button if beforeinstallprompt fires
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (canShowInstallButton()) {
+                installBtn.hidden = false;
+                installBtn.disabled = false;
+                installBtn.textContent = "Install App";
+                installBtn.style.opacity = "";
+                installBtn.style.cursor = "";
+            }
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.hidden = true;
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBtn.hidden = true;
+            deferredPrompt = null;
+        });
+
+        // iOS: Show manual install message if not in standalone
+        window.addEventListener('DOMContentLoaded', function() {
+            if (isIos() && !isInStandaloneMode()) {
+                iosMsg.style.display = 'block';
+                installBtn.hidden = true;
+            } else if (isInStandaloneMode()) {
+                installBtn.hidden = true;
+                iosMsg.style.display = 'none';
+            }
+        });
+
+        // Fallback: Only show "Install not supported" if after 7 seconds, beforeinstallprompt never fired, not iOS, not standalone
+        setTimeout(function() {
+            // If installBtn is still hidden and not iOS and not standalone, show fallback
+            if (installBtn.hidden && !isIos() && !isInStandaloneMode()) {
+                installBtn.hidden = false;
+                installBtn.disabled = true;
+                installBtn.textContent = "Install not supported";
+                installBtn.style.opacity = "0.7";
+                installBtn.style.cursor = "not-allowed";
+            }
+        }, 7000);
+
+        // Initialize custom date and time pickers using flatpickr
+        flatpickr("#date", {
+            dateFormat: "Y-m-d",
+            allowInput: false,
+            defaultDate: new Date(),
+            disableMobile: true,
+            theme: "material_blue"
+        });
+        flatpickr("#slot-deadline", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            allowInput: false,
+            disableMobile: true,
+            theme: "material_blue"
+        });
+
+        // Set the default date value for the picker and input
+        $(document).ready(function () {
+            // Set the date input to today (in YYYY-MM-DD)
+            const currentDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+            $("#date").val(currentDate);
+            // ...existing code...
+        });
+
+        // ...existing code...
     </script>
 </body>
 

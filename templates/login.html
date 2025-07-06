@@ -4,30 +4,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Task Scheduler Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap"
+        rel="stylesheet">
     <style>
+        /* --- Background and Layout --- */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            background: linear-gradient(135deg, #181c24 0%, #232a34 100%);
+            color: #e4e4e4;
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            overflow-x: hidden;
         }
 
+        /* --- Animated Techy Glow --- */
+        .glow-bg {
+            position: absolute;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, #00eaff55 0%, #232a3400 80%);
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            animation: pulseGlow 6s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* --- App Info Card --- */
+        .app-info {
+            margin-top: 60px;
+            margin-bottom: 32px;
+            background: rgba(30, 48, 80, 0.85);
+            border-radius: 22px;
+            box-shadow: 0 8px 32px #00eaff22, 0 1.5px 0 #00eaff inset;
+            padding: 2.5rem 2rem 2rem 2rem;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            border: 2px solid #00eaff33;
+        }
+
+        .app-info h1 {
+            font-family: 'Orbitron', 'Poppins', Arial, sans-serif;
+            font-size: 2.5rem;
+            color: #00eaff;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 16px #00eaff88;
+        }
+
+        .app-info .tagline {
+            font-size: 1.1rem;
+            color: #1ab23e;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            letter-spacing: 1.5px;
+        }
+
+        .app-info .desc {
+            color: #e4e4e4;
+            font-size: 1.08rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .app-info .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-info .feature {
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
+            color: #181c24;
+            border-radius: 12px;
+            padding: 0.3em 1em;
+            font-size: 0.98em;
+            font-weight: 600;
+            margin: 0.2em 0.2em;
+            box-shadow: 0 2px 8px #00eaff33;
+            letter-spacing: 1px;
+        }
+
+        .app-info .version {
+            color: #00eaffcc;
+            font-size: 0.95em;
+            margin-top: 0.5em;
+        }
+
+        /* --- Login Card --- */
         .container {
-            background: #ffffff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgba(30, 48, 80, 0.97);
+            padding: 2.5rem 2rem 2rem 2rem;
+            border-radius: 22px;
+            box-shadow: 0 8px 32px #00eaff22, 0 1.5px 0 #00eaff inset;
             width: 100%;
             max-width: 400px;
+            position: relative;
+            z-index: 2;
+            border: 2px solid #00eaff33;
         }
 
-        h1 {
+        .container h2 {
+            font-family: 'Orbitron', 'Poppins', Arial, sans-serif;
             text-align: center;
-            color: #333333;
+            color: #00eaff;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 16px #00eaff88;
         }
 
         form {
@@ -37,89 +145,183 @@
 
         label {
             margin-bottom: 0.5rem;
-            color: #555555;
+            color: #00eaff;
+            font-weight: 600;
+            letter-spacing: 1px;
         }
 
         input {
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #cccccc;
-            border-radius: 4px;
-            font-size: 1rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.2rem;
+            border: 2px solid #232a34;
+            border-radius: 12px;
+            font-size: 1.08rem;
+            background: linear-gradient(90deg, #232a34 60%, #1f4068 100%);
+            color: #00eaff;
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+            box-shadow: 0 2px 8px #00eaff22;
+            transition: border 0.2s, box-shadow 0.2s, background 0.2s;
         }
 
-        button {
-            padding: 0.75rem;
-            background-color: #007bff;
-            color: white;
+        input:focus {
+            border-color: #00eaff;
+            background: linear-gradient(90deg, #1f4068 60%, #00eaff 100%);
+            color: #fff;
+            box-shadow: 0 0 0 2px #00eaff99, 0 2px 8px #00eaff33;
+            outline: none;
+        }
+
+        button[type="submit"] {
+            padding: 0.85rem;
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
+            color: #181c24;
             border: none;
-            border-radius: 4px;
-            font-size: 1rem;
+            border-radius: 12px;
+            font-size: 1.08rem;
+            font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 2px 16px #00eaff33;
+            letter-spacing: 1.5px;
+            margin-top: 0.5rem;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
         }
 
-        button:hover {
-            background-color: #0056b3;
+        button[type="submit"]:hover {
+            background: linear-gradient(90deg, #1ab23e 0%, #00eaff 100%);
+            color: #fff;
+            box-shadow: 0 4px 24px #00eaff55;
+            transform: translateY(-2px) scale(1.03);
         }
 
         .links {
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.2rem;
         }
 
         .links a {
-            color: #007bff;
+            color: #00eaff;
             text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: color 0.2s;
         }
 
         .links a:hover {
+            color: #1ab23e;
             text-decoration: underline;
         }
 
         .error-message {
-            color: #ff0000;
-            background: #ffe6e6;
-            padding: 0.75rem;
-            border: 1px solid #ffcccc;
-            border-radius: 4px;
-            margin-bottom: 1rem;
+            color: #ff4c4c;
+            background: #2e1b1b;
+            padding: 0.85rem;
+            border: 1.5px solid #ff4c4c;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
             display: none;
+            font-weight: 600;
+            text-align: center;
         }
 
+        /* --- Google Button Customization --- */
         .g_id_signin {
             display: inline-block;
-            margin-top: 1rem;
+            margin-top: 1.2rem;
+            width: 100%;
+        }
+
+        #g_id_onload {
+            width: 100%;
+        }
+
+        .google-separator {
+            text-align: center;
+            margin: 1.5rem 0 1rem 0;
+            color: #00eaffbb;
+            font-size: 1.05em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .google-separator:before,
+        .google-separator:after {
+            content: "";
+            display: inline-block;
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, #00eaff 0%, #1ab23e 100%);
+            vertical-align: middle;
+            margin: 0 10px;
+            border-radius: 2px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 600px) {
+            .app-info,
+            .container {
+                max-width: 98vw;
+                padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+            }
+
+            .glow-bg {
+                width: 120vw;
+                height: 120vw;
+                top: -40vw;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Login</h1>
+    <div class="glow-bg"></div>
+     
+    <div class="app-info">
+        <h1>Task Scheduler</h1>
+        <div class="container">
+        <h2>Sign In</h2>
         <div id="error-message" class="error-message"></div>
         <form method="POST" action="/login" onsubmit="return handleLogin(event)">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-            <br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <br>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autocomplete="username">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
             <button type="submit">Login</button>
         </form>
         <div class="links">
             <p>Don't have an account? <a href="/signup">Sign up here</a></p>
             <p><a href="/forgot_password">Forgot Password?</a></p>
         </div>
-        <div style="text-align: center; margin-top: 1rem;">
+        <div class="google-separator">or</div>
+        <div style="text-align: center;">
             <div id="g_id_onload"
                 data-client_id="21748678795-l1d91f48a851gvd8r7j1tvird9joo3jv.apps.googleusercontent.com"
                 data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false">
             </div>
-            <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+            <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="filled_black"
                 data-text="sign_in_with" data-size="large" data-logo_alignment="left">
             </div>
         </div>
     </div>
+        <div class="tagline">Organize. Focus. Achieve.</div>
+        <div class="desc">
+            Welcome to <b>Task Scheduler</b> – your all-in-one productivity hub.<br>
+            Effortlessly plan your day, break it into focused slots, and track your progress with a modern, tech-inspired
+            interface.<br>
+            <span style="color:#1ab23e;font-weight:600;">Stay on top of your goals, every day.</span>
+        </div>
+        <div class="features">
+            <span class="feature">⚡ Slot-based Scheduling</span>
+            <span class="feature">📅 Modern Date & Time Pickers</span>
+            <span class="feature">📈 Progress Tracking</span>
+            <span class="feature">🔔 Reminders</span>
+            <span class="feature">🌙 Dark Techy UI</span>
+            <span class="feature">🔒 Secure Cloud Sync</span>
+            <span class="feature">🟢 PWA: Installable App</span>
+        </div>
+        <div class="version">v1.0.5 &copy; 2025 Avijit Singh</div>
+    </div>
+   
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         async function handleLogin(event) {
