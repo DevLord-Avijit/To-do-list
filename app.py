@@ -38,6 +38,7 @@ try:
         "universe_domain": os.getenv("FIREBASE_UNIVERSE_DOMAIN"),
     }
 
+    # Initialize Firebase Admin SDK
     cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)
     db = firestore.client()
@@ -53,6 +54,15 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 @app.route('/google_login', methods=['POST'])
 def google_login():
+    """
+    Handles Google login via a POST request.
+
+    Verifies the Google ID token, checks if the user exists, and logs the user in.
+
+    Returns:
+        JSON: {"status": "success", "message": "Google login successful"} on success,
+              or {"status": "error", "message": "..."} with an error message on failure.
+    """
     try:
         token = request.json.get('credential')
         if not token:
@@ -82,6 +92,15 @@ def google_login():
 # Google Sign up
 @app.route('/google_signup', methods=['POST'])
 def google_signup():
+    """
+    Handles Google signup via a POST request.
+
+    Verifies the Google ID token, creates a new user in the database, and logs the user in.
+
+    Returns:
+        JSON: {"status": "success", "message": "Google signup successful"} on success,
+              or {"status": "error", "message": "..."} with an error message on failure.
+    """
     try:
         token = request.json.get('credential')
         if not token:
@@ -124,6 +143,16 @@ SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
 
 # Helper function to send OTP
 def send_otp(email, otp):
+    """
+    Sends a One-Time Password (OTP) to the specified email address.
+
+    Args:
+        email (str): The recipient's email address.
+        otp (int): The OTP to send.
+
+    Raises:
+        Exception: If there's an error sending the email.
+    """
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
@@ -138,6 +167,16 @@ def send_otp(email, otp):
 # ---  Signup and Email Verification ---
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """
+    Handles user signup via a GET or POST request.
+
+    - GET: Renders the signup form.
+    - POST: Processes the signup form submission.  Sends an OTP for verification.
+
+    Returns:
+        - GET: Renders 'signup.html'.
+        - POST: Redirects to 'verify_email' on success, or renders 'signup.html' with an error message on failure.
+    """
     if request.method == 'POST':
         email = request.form.get('email')
         username = request.form.get('username')
@@ -165,6 +204,16 @@ def signup():
 
 @app.route('/verify_email', methods=['GET', 'POST'])
 def verify_email():
+    """
+    Handles email verification via a GET or POST request.
+
+    - GET: Renders the email verification form (not implemented in this code).
+    - POST: Verifies the OTP entered by the user.
+
+    Returns:
+        JSON: {"success": true} on successful verification,
+              or {"success": false, "error": "..."} with an error message on failure.
+    """
     if request.method == 'POST':
         otp = request.form.get('otp')
         temp_user = session.get('temp_user')
@@ -196,6 +245,17 @@ def verify_email():
 # --- Login and Logout ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handles user login via a GET or POST request.
+
+    - GET: Renders the login form.
+    - POST: Processes the login form submission.
+
+    Returns:
+        - GET: Renders 'login.html'.
+        - POST: JSON: {"status": "success", "message": "Login successful"} on success,
+                       or {"status": "error", "message": "..."} with an error message on failure.
+    """
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -221,6 +281,14 @@ def login():
 
 @app.route('/logout')
 def logout():
+    """
+    Handles user logout.
+
+    Removes the 'user' from the session.
+
+    Returns:
+        Redirects to the 'login' route.
+    """
     session.pop('user', None)
     return redirect(url_for('login'))
 
@@ -228,6 +296,15 @@ def logout():
 # --- Index/Main Page ---
 @app.route('/')
 def index():
+    """
+    Serves the index/main page.
+
+    Requires the user to be logged in.
+
+    Returns:
+        - Redirects to 'login' if the user is not logged in.
+        - Renders 'index.html' with tasks if the user is logged in.
+    """
     if 'user' not in session:
         return redirect(url_for('login'))
     tasks = load_tasks()
@@ -235,6 +312,12 @@ def index():
 
 
 def load_tasks():
+    """
+    Loads tasks for the current user.
+
+    Returns:
+        dict: A dictionary where keys are dates and values are lists of tasks.
+    """
     if 'user' not in session:
         return {}
     email = session['user']
@@ -257,6 +340,10 @@ def load_tasks():
 def rearrange_slots(email, date):
     """
     Rearrange the slots for a given date in ascending order of slot deadlines.
+
+    Args:
+        email (str): The user's email.
+        date (str): The date for which to rearrange slots.
     """
     doc_ref = tasks_ref.document(email).collection("tasks").document(date)
     doc = doc_ref.get()
@@ -269,6 +356,17 @@ def rearrange_slots(email, date):
 # --- Forgot Password and Reset Password ---
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
+    """
+    Handles the forgot password process via GET or POST request.
+
+    - GET: Renders the forgot password form.
+    - POST: Sends an OTP to the user's email for password reset.
+
+    Returns:
+        - GET: Renders 'forgot_password.html'.
+        - POST: JSON: {"status": "success", "message": "Password reset instructions sent"} on success,
+                       or {"status": "error", "message": "..."} with an error message on failure.
+    """
     if request.method == 'POST':
         email = request.form.get('email')
         if not email:
@@ -294,6 +392,16 @@ def forgot_password():
 
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
+    """
+    Handles the password reset process via GET or POST request.
+
+    - GET: Renders the reset password form (not explicitly implemented in this code).
+    - POST: Validates the OTP and updates the user's password.
+
+    Returns:
+        JSON: {"status": "success", "message": "Password reset successfully"} on success,
+              or {"status": "error", "message": "..."} with an error message on failure.
+    """
     if request.method == 'POST':
         otp = request.form.get('otp')
         new_password = request.form.get('new_password')
@@ -325,6 +433,13 @@ def reset_password():
 # --- User Details ---
 @app.route('/get_user_details', methods=['GET'])
 def get_user_details():
+    """
+    Retrieves user details.
+
+    Returns:
+        JSON: {'name': username, 'email': email} if user is logged in,
+              or {'error': 'User not logged in'} with a 401 status if not logged in.
+    """
     if 'user' in session:
         email = session['user']
         user_doc = users_ref.document(email).get()
@@ -337,6 +452,15 @@ def get_user_details():
 # --- Task Management ---
 @app.route('/add_slot', methods=['POST'])
 def add_slot():
+    """
+    Adds a new time slot for a given date.
+
+    Requires the user to be logged in.
+
+    Returns:
+        JSON: {"status": "success"} on success,
+              or {"status": "error", "message": "Unauthorized"} on failure.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
@@ -356,6 +480,17 @@ def add_slot():
 
 @app.route('/add_task', methods=['POST'])
 def add_task():
+    """
+    Adds a new task to a specified time slot.
+
+    Requires the user to be logged in.
+
+    Accepts data in JSON or form data format.
+
+    Returns:
+        JSON: {"status": "success"} on success,
+              or {"status": "error", "message": "..."} with an error message on failure.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"}), 401
     email = session['user']
@@ -387,6 +522,15 @@ def add_task():
 
 @app.route('/update_task_progress', methods=['POST'])
 def update_task_progress():
+    """
+    Updates the progress of a specific task.
+
+    Requires the user to be logged in.
+
+    Returns:
+        JSON: {"status": "success"} on success,
+              or {"status": "error", "message": "Unauthorized"} on failure.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
@@ -407,6 +551,15 @@ def update_task_progress():
 
 @app.route('/toggle_task', methods=['POST'])
 def toggle_task():
+    """
+    Toggles the 'checked' status of a task.
+
+    Requires the user to be logged in.
+
+    Returns:
+        JSON: {"status": "success"} on success,
+              or {"status": "error", "message": "Unauthorized"} on failure.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
@@ -426,6 +579,14 @@ def toggle_task():
 
 @app.route('/get_tasks_for_date', methods=['POST'])
 def get_tasks_for_date():
+    """
+    Retrieves tasks for a given date.
+
+    Requires the user to be logged in.
+
+    Returns:
+        JSON: A list of tasks for the specified date, or an empty list if no tasks are found.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
@@ -439,6 +600,15 @@ def get_tasks_for_date():
 
 @app.route('/delete_slot', methods=['POST'])
 def delete_slot():
+    """
+    Deletes a time slot for a given date.
+
+    Requires the user to be logged in.
+
+    Returns:
+        JSON: {"status": "success"} on success,
+              or {"status": "error", "message": "Unauthorized"} on failure.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
@@ -464,6 +634,17 @@ def delete_slot():
 
 @app.route('/delete_task', methods=['POST'])
 def delete_task():
+    """
+    Deletes a task from a specified time slot.
+
+    Requires the user to be logged in.
+
+    Accepts data in JSON or form data format.
+
+    Returns:
+        JSON: {"status": "success"} on success,
+              or {"status": "error", "message": "..."} with an error message on failure.
+    """
     if 'user' not in session:
         return jsonify({"status": "error", "message": "Unauthorized"})
     email = session['user']
@@ -496,6 +677,15 @@ def delete_task():
 # --- Summary Page ---
 @app.route('/summary')
 def summary():
+    """
+    Serves the summary page.
+
+    Requires the user to be logged in.
+
+    Returns:
+        - Redirects to 'login' if the user is not logged in.
+        - Renders 'summary.html' with tasks if the user is logged in.
+    """
     if 'user' not in session:
         return redirect(url_for('login'))
     tasks = load_tasks()
@@ -505,16 +695,37 @@ def summary():
 # --- Static Files (Manifest and Service Worker) ---
 @app.route('/manifest.json')
 def manifest():
+    """
+    Serves the manifest.json file.
+
+    Returns:
+        The contents of 'manifest.json' with the correct MIME type.
+    """
     return send_from_directory('.', 'manifest.json', mimetype='application/manifest+json')
 
 
 @app.route('/service-worker.js')
 def service_worker():
+    """
+    Serves the service-worker.js file.
+
+    Returns:
+        The contents of 'service-worker.js' with the correct MIME type.
+    """
     return send_from_directory('.', 'service-worker.js', mimetype='application/javascript')
 
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
+    """
+    Serves static files from the 'static' directory.
+
+    Args:
+        filename (str): The name of the file to serve.
+
+    Returns:
+        The contents of the specified file from the 'static' directory.
+    """
     return send_from_directory('static', filename)
 
 
@@ -523,74 +734,3 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
 ```
-
-Key improvements and explanations:
-
-*   **Comprehensive Error Handling:**
-    *   **`try...except` Blocks:** Added `try...except` blocks around critical operations like Firebase initialization, Google login/signup, and password reset. This is crucial for catching unexpected errors that could lead to a 500 Internal Server Error.  These blocks now also include logging of exceptions, which is critical for debugging.
-    *   **Specific Exception Handling:**  Within the `except` blocks, the code now catches specific exceptions (e.g., `ValueError`, `KeyError`) to provide more informative error messages and handle different types of errors gracefully.
-    *   **Logging Errors:**  Significantly enhanced logging using the `logging` module.  This is the *most important* improvement.  The code now logs:
-        *   Errors during Firebase initialization (critical).
-        *   Errors during Google login/signup.
-        *   Errors during OTP sending.
-        *   Errors during password reset attempts (including invalid OTPs and other issues).
-        *   Informational messages (e.g., successful login, OTP sent).
-        *   Use of `logging.exception()` which includes a stack trace to pinpoint the exact location of the error (highly valuable for debugging).
-    *   **Return Status Codes:**  Uses appropriate HTTP status codes (400, 401, 404, 500, etc.) to indicate the type of error to the client (browser).  This is critical for debugging and providing informative messages to the user.  For example, `404` for "User not found," `401` for "Unauthorized," etc.
-    *   **Informative Error Messages:**  Returns more informative error messages in the JSON responses to the client, helping with debugging and user feedback. For example the Forgot Password page now returns the proper error code.
-    *   **Input Validation:** Added validation to key form submissions to prevent common errors (e.g. ensuring email and password are provided for login).
-*   **Firebase Initialization:**
-    *   **Error Handling:** Added a `try...except` block around Firebase initialization to catch any errors during the initialization process.  This is essential because if Firebase fails to initialize, the entire application will fail.
-    *   **Logging:** Logs the success or failure of Firebase initialization, including the specific error message if it fails.
-    *   **Placement:** Moved Firebase initialization to the top of the file for better organization and to ensure it happens before any routes that depend on it.
-*   **Password Reset Flow Fixes:**
-    *   **Error Handling:** Implemented error handling in the `forgot_password` and `reset_password` routes to prevent server errors and provide better feedback.
-    *   **Email Check:** The `forgot_password` route now explicitly checks if the email exists in the database before attempting to send an OTP, preventing a potential error if the user doesn't exist and logging the issue.
-    *   **Validation:** Added checks to ensure that required form data (OTP and new password) are provided in the `reset_password` route.
-*   **Session Management:**
-    *   **Clarity:** Added `logging.info` to indicate successful logins and more informative logging for user actions.
-*   **Code Organization and Readability:**
-    *   **Comments:** Added comments to explain different sections of the code.
-    *   **Consistent Formatting:** Ensured consistent code formatting for readability.
-    *   **Function Grouping:** Organized the code into logical sections (e.g., "Google Auth," "SMTP Configuration," "Signup and Email Verification," etc.) to improve readability.
-*   **Security:**
-    *   **Secret Key:** Ensured that the `SECRET_KEY` is loaded from the environment variables.
-
-How to use the improved code and debug the issue:
-
-1.  **Implement `.env` file:** Create a `.env` file in the same directory as your Python script. Populate it with the necessary environment variables, including:
-
-    ```
-    SECRET_KEY=your_secret_key_here
-    SMTP_SERVER=your_smtp_server
-    SMTP_PORT=your_smtp_port  # e.g., 587 for TLS, 465 for SSL
-    SMTP_EMAIL=your_email@example.com
-    SMTP_PASSWORD=your_email_password
-    GOOGLE_CLIENT_ID=your_google_client_id
-    # Firebase credentials (replace with your actual values)
-    FIREBASE_TYPE=service_account
-    FIREBASE_PROJECT_ID=your-project-id
-    FIREBASE_PRIVATE_KEY_ID=your-private-key-id
-    FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n
-    FIREBASE_CLIENT_EMAIL=your-client-email@example.com
-    FIREBASE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-    FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-    FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-    FIREBASE_AUTH_PROVIDER_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
-    FIREBASE_CLIENT_CERT_URL=your-client-cert-url
-    FIREBASE_UNIVERSE_DOMAIN=your-universe-domain
-    ```
-
-    *   **Important:**  Replace placeholder values with your actual credentials. The `FIREBASE_PRIVATE_KEY` must be formatted correctly, with `\n` to handle newlines.  The `FIREBASE_PRIVATE_KEY` also *cannot* have any extra spaces or characters at the start or end.
-2.  **Run the Application:**  Run your Flask application.
-3.  **Reproduce the Error:**  Go to the "Forgot Password" page and enter a valid email address. Click "Submit."
-4.  **Check the Logs:**  *This is the most important step.* Examine the console output (where you're running your Flask application) for any error messages from the `logging` statements. The logging will pinpoint the exact location of the error and provide valuable clues about the cause.  Look for stack traces (because `logging.exception()` is used).
-
-By following these steps and carefully examining the log output, you will be able to identify the root cause of the "Internal Server Error" and resolve the issue. The error might be related to:
-
-*   **SMTP Configuration:**  Incorrect SMTP server, port, email, or password in your `.env` file.  The logs will show connection errors.
-*   **Firebase Issues:**  Incorrect Firebase credentials in your `.env` file, network issues preventing connection to Firebase, or problems with your Firebase project configuration. The logs will show initialization errors.
-*   **Code Errors:**  A bug in the password reset logic itself (though the error handling is significantly improved to mitigate this). The logs will show the type of error and where it occurred.
-*   **Session issues:** There may be an issue with the session.
-
-This improved code provides a much more robust and debuggable solution.
